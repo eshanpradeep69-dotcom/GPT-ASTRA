@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimal AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://js.puter.com/v2/"></script>
+<style>
+  :root{
+    --bg:#12171a;
+    --sidebar:#0c1012;
+    --panel:#1b2226;
+    --bubble-user:#233129;
+    --line:#26302f;
+    --accent:#d9a441;
+    --accent-ink:#12171a;
+    --text:#e9e7de;
+    --text-dim:#8a9290;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  body{
+    display:flex;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter', system-ui, sans-serif;
+    font-size:15px;
+    overflow:hidden;
+  }
+
+  /* Sidebar */
+  #sidebar{
+    width:260px;
+    flex-shrink:0;
+    background:var(--sidebar);
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    padding:16px 12px;
+  }
+  .brand{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:20px;
+    padding:4px 8px 18px;
+    color:var(--text);
+  }
+  #newChat{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:10px 12px;
+    border-radius:var(--radius);
+    font-family:inherit;
+    font-size:14px;
+    cursor:pointer;
+    margin-bottom:14px;
+    text-align:left;
+  }
+  #newChat:hover{ background:var(--panel); }
+  #chatList{
+    flex:1;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .chat-item{
+    padding:9px 12px;
+    border-radius:var(--radius);
+    color:var(--text-dim);
+    font-size:13.5px;
+    cursor:pointer;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .chat-item:hover{ background:var(--panel); }
+  .chat-item.active{ background:var(--panel); color:var(--text); }
+  .sidebar-foot{
+    border-top:1px solid var(--line);
+    padding-top:12px;
+    font-size:12px;
+    color:var(--text-dim);
+  }
+
+  /* Main */
+  #main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+  }
+  #topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 20px;
+    border-bottom:1px solid var(--line);
+  }
+  #modelSelect{
+    background:var(--panel);
+    color:var(--text);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:7px 10px;
+    font-family:inherit;
+    font-size:13px;
+  }
+  #scrollArea{
+    flex:1;
+    overflow-y:auto;
+    padding:28px 20px 10px;
+  }
+  #thread{
+    max-width:700px;
+    margin:0 auto;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+  }
+  #welcome{
+    max-width:560px;
+    margin:14vh auto 0;
+    text-align:center;
+  }
+  #welcome h2{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:28px;
+    margin:0 0 8px;
+  }
+  #welcome p{
+    color:var(--text-dim);
+    font-size:14px;
+    line-height:1.6;
+  }
+  .msg{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
+  .msg .avatar{
+    width:26px;height:26px;
+    border-radius:50%;
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;
+    font-weight:600;
+    margin-top:2px;
+  }
+  .msg.user .avatar{ background:var(--accent); color:var(--accent-ink); }
+  .msg.ai .avatar{ background:var(--panel); border:1px solid var(--line); color:var(--text-dim); }
+  .msg .content{
+    line-height:1.65;
+    white-space:pre-wrap;
+    padding-top:2px;
+  }
+  .msg .content.pending{ color:var(--text-dim); font-style:italic; }
+  .msg .content code{
+    background:var(--panel);
+    padding:2px 5px;
+    border-radius:4px;
+    font-size:13px;
+    font-family:'SF Mono', Consolas, monospace;
+  }
+
+  form#inputBar{
+    max-width:700px;
+    margin:0 auto;
+    width:100%;
+    padding:14px 20px 22px;
+    display:flex;
+    gap:10px;
+    align-items:flex-end;
+  }
+  #textInput{
+    flex:1;
+    resize:none;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--text);
+    border-radius:var(--radius);
+    padding:12px 14px;
+    font-family:inherit;
+    font-size:14.5px;
+    max-height:160px;
+  }
+  #textInput:focus{ outline:none; border-color:var(--accent); }
+  #sendBtn{
+    background:var(--accent);
+    color:var(--accent-ink);
+    border:none;
+    border-radius:var(--radius);
+    width:42px;height:42px;
+    flex-shrink:0;
+    cursor:pointer;
+    font-size:16px;
+  }
+  #sendBtn:disabled{ opacity:0.4; cursor:default; }
+  .disclaimer{
+    text-align:center;
+    font-size:11.5px;
+    color:var(--text-dim);
+    padding-bottom:10px;
+  }
+
+  @media (max-width: 720px){
+    #sidebar{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="brand">Nimal AI</div>
+  <button id="newChat" type="button">＋ අලුත් chat එකක්</button>
+  <div id="chatList"></div>
+  <div class="sidebar-foot">Puter.js හරහා ක්‍රියාත්මකයි</div>
+</div>
+
+<div id="main">
+  <div id="topbar">
+    <select id="modelSelect">
+      <option value="openai/gpt-6-astra">GPT-6 Astra</option>
+      <option value="openai/gpt-6-astra-pro">GPT-6 Astra Pro</option>
+      <option value="openai/gpt-5.4-nano">GPT-5.4 Nano</option>
+      <option value="moonshotai/kimi-k2">Kimi K2</option>
+    </select>
+    <span style="font-size:12px;color:var(--text-dim);">Nimal AI</span>
+  </div>
+
+  <div id="scrollArea">
+    <div id="welcome">
+      <h2>අද මොනවද කතා කරන්නේ?</h2>
+      <p>පහළින් පණිවුඩයක් ලියලා පටන් ගන්න.</p>
+    </div>
+    <div id="thread"></div>
+  </div>
+
+  <form id="inputBar">
+    <textarea id="textInput" rows="1" placeholder="පණිවුඩයක් යවන්න..."></textarea>
+    <button id="sendBtn" type="submit">↑</button>
+  </form>
+  <div class="disclaimer">AI වලට වැරදි විය හැක. වැදගත් තොරතුරු verify කරගන්න.</div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'nimal_ai_chats_v1';
+  const chatListEl = document.getElementById('chatList');
+  const threadEl = document.getElementById('thread');
+  const welcomeEl = document.getElementById('welcome');
+  const scrollArea = document.getElementById('scrollArea');
+  const form = document.getElementById('inputBar');
+  const textInput = document.getElementById('textInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const modelSelect = document.getElementById('modelSelect');
+
+  let chats = loadChats();
+  let activeId = chats.length ? chats[0].id : createChat();
+
+  function loadChats(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){ return []; }
+  }
+  function saveChats(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
+  }
+  function createChat(){
+    const id = 'c' + Date.now();
+    chats.unshift({ id, title: 'නව chat', messages: [] });
+    saveChats();
+    return id;
+  }
+  function getActive(){
+    return chats.find(c => c.id === activeId);
+  }
+
+  function renderChatList(){
+    chatListEl.innerHTML = '';
+    chats.forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'chat-item' + (c.id === activeId ? ' active' : '');
+      el.textContent = c.title;
+      el.onclick = () => { activeId = c.id; renderAll(); };
+      chatListEl.appendChild(el);
+    });
+  }
+
+  function renderThread(){
+    const chat = getActive();
+    threadEl.innerHTML = '';
+    welcomeEl.style.display = chat.messages.length ? 'none' : 'block';
+    chat.messages.forEach(m => addMessageEl(m.role, m.content));
+    scrollArea.scrollTop = scrollArea.scrollHeight;
+  }
+
+  function addMessageEl(role, text, pending){
+    welcomeEl.style.display = 'none';
+    const row = document.createElement('div');
+    row.className = 'msg ' + (role === 'user' ? 'user' : 'ai');
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.textContent = role === 'user' ? 'ඔ' : 'AI';
+    const content = document.createElement('div');
+    content.className = 'content' + (pending ? ' pending' : '');
+    content.textContent = text;
+    row.appendChild(avatar);
+    row.appendChild(content);
+    threadEl.appendChild(row);
+    scrollArea.scrollTop = scrollArea.scrollHeight;
+    return content;
+  }
+
+  function renderAll(){
+    renderChatList();
+    renderThread();
+  }
+
+  document.getElementById('newChat').onclick = () => {
+    activeId = createChat();
+    renderAll();
+  };
+
+  textInput.addEventListener('input', () => {
+    textInput.style.height = 'auto';
+    textInput.style.height = Math.min(textInput.scrollHeight, 160) + 'px';
+  });
+  textInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' && !e.shiftKey){
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = textInput.value.trim();
+    if(!text) return;
+
+    const chat = getActive();
+    if(chat.messages.length === 0){
+      chat.title = text.slice(0, 30);
+    }
+    chat.messages.push({ role: 'user', content: text });
+    saveChats();
+
+    textInput.value = '';
+    textInput.style.height = 'auto';
+    sendBtn.disabled = true;
+    renderAll();
+
+    const pendingEl = addMessageEl('ai', 'ටයිප් කරමින්...', true);
+
+    try{
+      const history = chat.messages.map(m => ({ role: m.role, content: m.content }));
+      const response = await puter.ai.chat(history, { model: modelSelect.value });
+      const reply = response.message.content;
+      pendingEl.classList.remove('pending');
+      pendingEl.textContent = reply;
+      chat.messages.push({ role: 'assistant', content: reply });
+      saveChats();
+      renderChatList();
+    }catch(err){
+      pendingEl.classList.remove('pending');
+      pendingEl.textContent = 'දෝෂයක් සිදු වුණා. ආයෙත් try කරන්න.';
+      console.error(err);
+    }
+
+    sendBtn.disabled = false;
+    textInput.focus();
+  });
+
+  renderAll();
+</script>
+
+</body>
+</html>
